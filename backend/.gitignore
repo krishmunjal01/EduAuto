@@ -1,0 +1,62 @@
+# ─── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+package-lock.json
+
+# ─── Environment / Secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── TypeScript Build Output ──────────────────────────────────────────────────
+dist/
+
+# ─── Prisma SQLite Database (never commit the live DB) ───────────────────────
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-shm
+prisma/*.db-wal
+
+# ─── File Uploads (runtime user files) ───────────────────────────────────────
+uploads/
+
+# ─── Tesseract Training Data ─────────────────────────────────────────────────
+eng.traineddata
+
+# ─── One-off Debug / Migration Scripts (not needed in production) ─────────────
+addcol.js
+check_cols.js
+check_data.js
+check_sub.js
+cleanup.js
+db_path_check.js
+debug_sub.ts
+diagnose.js
+diagnose_sub.js
+diagnose_sub.ts
+final_reset_v3.js
+force_reset_v2.js
+generate_images.js
+list_teachers.js
+migrate_manual.js
+rebuild_db.js
+reset.js
+seed_production.js
+clean_reset.ts
+setup.bat
+test_final.js
+test_gemini.js
+verify_db.js
+{
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── OS / Editor ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

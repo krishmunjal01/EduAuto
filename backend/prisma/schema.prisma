@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model School {
+  id              String   @id @default(uuid())
+  school_name     String
+  school_code     String   @unique
+  board           String?
+  affiliation_id  String?
+  address         String?
+  city            String?
+  state           String?
+  contact_number  String?
+  email           String?
+  subscription_plan String @default("free")
+  plan_valid_till DateTime?
+  messages_used_this_month Int @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  users         User[]
+  sections      Section[]
+  students      Student[]
+  timetables    Timetable[]
+  substitutions Substitution[]
+  attendances   Attendance[]
+  attendanceCor AttendanceCorrection[]
+  leaves        Leave[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+}
+
+model User {
+  id          String   @id @default(uuid())
+  school_id   String
+  name        String
+  email       String   @unique
+  password    String
+  role        String   // admin, teacher, parent
+  status      String   @default("active")
+  student_id  String?  // for parent roll mapping directly or via parentStudent
+
+  school      School   @relation(fields: [school_id], references: [id])
+  parentStudents ParentStudent[]
+  teacherSections TeacherSection[]
+  timetables  Timetable[]      @relation("TeacherTimetables")
+  tests       Test[]           @relation("TeacherTests")
+  leaves      Leave[]
+  absences    Substitution[]   @relation("AbsentTeacher")
+  substitutions Substitution[] @relation("SubstituteTeacher")
+  notifications Notification[]
+  auditLogs   AuditLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Section {
+  id           String   @id @default(uuid())
+  school_id    String
+  section_name String
+  subject      String?
+
+  school       School   @relation(fields: [school_id], references: [id])
+  students     Student[]
+  teacherSections TeacherSection[]
+  timetables   Timetable[]
+  tests        Test[]
+  attendances  Attendance[]
+  substitutions Substitution[]
+
+  createdAt    DateTime @default(now())
+}
+
+model Student {
+  id             String   @id @default(uuid())
+  school_id      String
+  section_id     String
+  student_id     String   @unique // SCHOOLCODE_XXXX
+  name           String
+  roll_number    String
+  parent_name    String?
+  parent_phone   String?
+
+  school         School    @relation(fields: [school_id], references: [id])
+  section        Section   @relation(fields: [section_id], references: [id])
+  parentStudents ParentStudent[]
+  results        Result[]
+  attendances    Attendance[]
+
+  createdAt      DateTime  @default(now())
+}
+
+model ParentStudent {
+  id          String   @id @default(uuid())
+  parent_id   String
+  student_id  String
+
+  parent      User     @relation(fields: [parent_id], references: [id])
+  student     Student  @relation(fields: [student_id], references: [id])
+}
+
+model TeacherSection {
+  id          String   @id @default(uuid())
+  teacher_id  String
+  section_id  String
+
+  teacher     User     @relation(fields: [teacher_id], references: [id])
+  section     Section  @relation(fields: [section_id], references: [id])
+}
+
+model Timetable {
+  id            String   @id @default(uuid())
+  school_id     String
+  section_id    String
+  day_of_week   String
+  period_number Int
+  subject       String
+  teacher_id    String?
+
+  school        School   @relation(fields: [school_id], references: [id])
+  section       Section  @relation(fields: [section_id], references: [id])
+  teacher       User?    @relation("TeacherTimetables", fields: [teacher_id], references: [id])
+}
+
+model Test {
+  id          String   @id @default(uuid())
+  teacher_id  String
+  section_id  String
+  title       String
+  date        DateTime
+
+  teacher     User     @relation("TeacherTests", fields: [teacher_id], references: [id])
+  section     Section  @relation(fields: [section_id], references: [id])
+  results     Result[]
+}
+
+model Result {
+  id          String   @id @default(uuid())
+  test_id     String
+  student_id  String
+  marks       Int
+  image_url   String?
+  verified    Boolean  @default(false)
+
+  test        Test     @relation(fields: [test_id], references: [id])
+  student     Student  @relation(fields: [student_id], references: [id])
+}
+
+model Attendance {
+  id          String   @id @default(uuid())
+  school_id   String
+  student_id  String
+  section_id  String
+  date        DateTime
+  status      String   // present, absent, late
+  marked_by   String
+
+  student     Student  @relation(fields: [student_id], references: [id])
+  section     Section  @relation(fields: [section_id], references: [id])
+  school      School   @relation(fields: [school_id], references: [id])
+  corrections AttendanceCorrection[]
+}
+
+model AttendanceCorrection {
+  id            String   @id @default(uuid())
+  school_id     String
+  attendance_id String
+  requested_by  String
+  new_status    String?
+  reason        String
+  status        String   @default("pending") // pending, approved, rejected
+  reviewed_by   String?
+
+  attendance    Attendance @relation(fields: [attendance_id], references: [id])
+  school        School     @relation(fields: [school_id], references: [id])
+}
+
+model Leave {
+  id          String   @id @default(uuid())
+  school_id   String
+  user_id     String
+  type        String   // student, teacher
+  from_date   DateTime
+  to_date     DateTime
+  reason      String
+  status      String   @default("pending") // pending, approved, rejected
+  approved_by String?
+
+  user        User     @relation(fields: [user_id], references: [id])
+  school      School   @relation(fields: [school_id], references: [id])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  school_id   String
+  user_id     String
+  title       String
+  message     String
+  is_read     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id])
+  school      School   @relation(fields: [school_id], references: [id])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  school_id   String
+  user_id     String?  // nullable in case of system actions
+  action      String
+  entity      String
+  entity_id   String
+  timestamp   DateTime @default(now())
+
+  user        User?    @relation(fields: [user_id], references: [id])
+  school      School   @relation(fields: [school_id], references: [id])
+}
+
+model Substitution {
+  id                     String   @id @default(uuid())
+  school_id              String
+  timetable_id           String?
+  section_id             String
+  day                    String
+  period_index           Int
+  subject                String
+  absent_teacher_id      String
+  substitute_teacher_id  String?
+  status                 String   @default("pending") // pending, assigned
+  leave_request_id       String?
+  date                   DateTime
+
+  school             School  @relation(fields: [school_id], references: [id])
+  section            Section @relation(fields: [section_id], references: [id])
+  absent_teacher     User    @relation("AbsentTeacher", fields: [absent_teacher_id], references: [id])
+  substitute_teacher User?   @relation("SubstituteTeacher", fields: [substitute_teacher_id], references: [id])
+}
+

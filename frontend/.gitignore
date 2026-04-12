@@ -1,0 +1,41 @@
+# ─── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+package-lock.json
+bun.lockb
+bun.lock
+
+# ─── Build Output ─────────────────────────────────────────────────────────────
+dist/
+dist-ssr/
+
+# ─── Environment / Secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.local
+
+# ─── Playwright Test Output ───────────────────────────────────────────────────
+playwright-report/
+test-results/
+.playwright/
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── OS / Editor ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
