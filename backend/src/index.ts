@@ -18,6 +18,16 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static uploads
 app.use('/uploads', express.static('uploads'));
 
+// Root — API info
+app.get('/', (req, res) => {
+  res.json({
+    name: 'EduAuto SaaS API',
+    version: '1.0.0',
+    status: 'running',
+    docs: '/health'
+  });
+});
+
 // Healthcheck
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
