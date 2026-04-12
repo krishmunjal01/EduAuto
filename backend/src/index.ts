@@ -6,7 +6,12 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// Allow requests from the Vercel frontend (set FRONTEND_URL in Render env vars)
+const allowedOrigins = process.env.FRONTEND_URL
+  ? [process.env.FRONTEND_URL, 'http://localhost:8080', 'http://localhost:5173']
+  : true; // allow all in dev
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

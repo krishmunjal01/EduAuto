@@ -11,10 +11,10 @@ package-lock.json
 dist/
 
 # ─── Prisma SQLite Database (never commit the live DB) ───────────────────────
-prisma/*.db
-prisma/*.db-journal
-prisma/*.db-shm
-prisma/*.db-wal
+**/*.db
+**/*.db-journal
+**/*.db-shm
+**/*.db-wal
 
 # ─── File Uploads (runtime user files) ───────────────────────────────────────
 uploads/
