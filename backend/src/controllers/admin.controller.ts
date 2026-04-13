@@ -3,7 +3,9 @@ import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middlewares/auth';
 import { parse } from 'csv-parse/sync';
+import * as XLSX from 'xlsx';
 import fs from 'fs';
+import path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -234,10 +236,40 @@ export const uploadStudentsCsv = async (req: AuthRequest, res: Response) => {
     });
     if (!section) return res.status(404).json({ error: 'Section not found' });
 
-    if (!req.file) return res.status(400).json({ error: 'No CSV file uploaded' });
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-    const fileContent = fs.readFileSync(req.file.path, 'utf-8');
-    const records = parse(fileContent, { columns: true, skip_empty_lines: true, trim: true });
+    const ext = path.extname(req.file.originalname).toLowerCase();
+
+    const allowedExtensions = ['.csv', '.xlsx', '.xls'];
+    if (!allowedExtensions.includes(ext)) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'Unsupported file type. Please upload a CSV or Excel file.' });
+    }
+
+    let records: Record<string, string>[] = [];
+
+    if (ext === '.csv') {
+      // Parse CSV
+      const fileContent = fs.readFileSync(req.file.path, 'utf-8');
+      records = parse(fileContent, { columns: true, skip_empty_lines: true, trim: true });
+    } else {
+      // Parse Excel (.xlsx / .xls)
+      // Use buffer mode so SheetJS detects format from magic bytes
+      // (Multer saves temp files without an extension, so readFile can't auto-detect)
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      records = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet, { defval: '' });
+      // Normalize keys — Excel headers often have leading/trailing spaces
+      records = records.map(row => {
+        const normalized: Record<string, string> = {};
+        for (const key of Object.keys(row)) {
+          normalized[key.trim()] = String(row[key]);
+        }
+        return normalized;
+      });
+    }
 
     const school = await prisma.school.findUnique({ where: { id: req.user!.school_id } });
     if (!school) throw new Error("School not found");
@@ -245,10 +277,10 @@ export const uploadStudentsCsv = async (req: AuthRequest, res: Response) => {
     let importedCount = 0;
 
     for (const record of records) {
-      const name = record['Name'] || record['name'] || '';
-      const rollNo = record['Roll No'] || record['Roll Number'] || record['roll_no'] || '';
-      const parentName = record['Parent Name'] || record['parent_name'] || null;
-      const parentPhone = record['Parent Phone'] || record['Phone Number'] || record['phone'] || null;
+      const name = String(record['Name'] || record['name'] || '').trim();
+      const rollNo = String(record['Roll No'] || record['Roll Number'] || record['roll_no'] || '').trim();
+      const parentName = String(record['Parent Name'] || record['parent_name'] || '').trim() || null;
+      const parentPhone = String(record['Parent Phone'] || record['Phone Number'] || record['phone'] || '').trim() || null;
 
       if (!name || !rollNo) continue;
       
@@ -270,7 +302,7 @@ export const uploadStudentsCsv = async (req: AuthRequest, res: Response) => {
       importedCount++;
     }
 
-    // Attempt to delete the temp CSV
+    // Attempt to delete the temp file
     try {
       fs.unlinkSync(req.file.path);
     } catch(e) {}
@@ -288,7 +320,7 @@ export const uploadStudentsCsv = async (req: AuthRequest, res: Response) => {
     res.json({ message: `Successfully imported ${importedCount} students.` });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error parsing CSV' });
+    res.status(500).json({ error: 'Server error parsing file' });
   }
 };
 

@@ -115,7 +115,7 @@ const SectionManagement = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      toast({ title: 'CSV Uploaded! 📄', description: res.data.message });
+      toast({ title: 'File Uploaded! 📄', description: res.data.message });
       await fetchSections();
     } catch (err: any) {
       toast({ title: 'Upload Failed', description: err.response?.data?.error || err.message, variant: 'destructive' });
@@ -168,7 +168,7 @@ const SectionManagement = () => {
         {/* CSV Upload (admin only) */}
         {isAdmin && (
           <div className="space-y-4">
-             <input type="file" accept=".csv" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e, selected.id)} />
+             <input type="file" accept=".csv,.xlsx,.xls" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e, selected.id)} />
             <motion.div
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
@@ -187,8 +187,8 @@ const SectionManagement = () => {
               }`}
             >
               <Upload className={`w-10 h-10 mx-auto mb-3 ${dragOver ? 'text-accent' : 'text-muted-foreground'}`} />
-              <p className="text-muted-foreground mb-1 font-medium">Click to upload CSV or drag and drop</p>
-              <p className="text-xs text-muted-foreground/70">Expected columns: Name, Roll Number, Parent Name, Phone Number</p>
+              <p className="text-muted-foreground mb-1 font-medium">Click to upload CSV or Excel file, or drag and drop</p>
+              <p className="text-xs text-muted-foreground/70">Supported: .csv, .xlsx, .xls &nbsp;·&nbsp; Columns: Name, Roll Number, Parent Name, Phone Number</p>
             </motion.div>
           </div>
         )}
@@ -317,7 +317,7 @@ const SectionManagement = () => {
         <EmptyState
           icon={FolderOpen}
           title={isAdmin ? "No sections created yet" : "No sections assigned"}
-          description={isAdmin ? "Create your first section to organize students. Then upload a CSV of students per section." : "Your admin hasn't assigned any sections to you yet."}
+          description={isAdmin ? "Create your first section to organize students. Then upload a CSV or Excel file of students per section." : "Your admin hasn't assigned any sections to you yet."}
           actionLabel={isAdmin ? "Create First Section" : undefined}
           onAction={isAdmin ? () => setShowCreateForm(true) : undefined}
         />
