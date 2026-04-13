@@ -38,6 +38,8 @@ walkthrough.md
 test_images/
 messy_handwritings/
 test_students.csv
+Test_students_2.csv
+Test_students_2.xlsx
 
 # ─── OS / Editor ──────────────────────────────────────────────────────────────
 .DS_Store
