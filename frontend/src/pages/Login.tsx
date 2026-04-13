@@ -37,8 +37,9 @@ const Login = () => {
       if (role === 'admin') navigate('/dashboard');
       else if (role === 'teacher') navigate('/teacher-dashboard');
       else navigate('/parent-portal');
-    } catch {
-      toast({ title: 'Error', description: 'Wrong credentials, please check and try again', variant: 'destructive' });
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Wrong credentials, please check and try again';
+      toast({ title: 'Login Failed', description: msg, variant: 'destructive' });
     } finally {
       setLoading(false);
     }

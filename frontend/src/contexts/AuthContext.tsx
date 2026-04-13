@@ -49,8 +49,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const login = async (email: string, password: string, _role: UserRole) => {
-    const res = await api.post('/auth/login', { email, password });
+  const login = async (email: string, password: string, role: UserRole) => {
+    const res = await api.post('/auth/login', { email, password, role });
     localStorage.setItem('eduauto_token', res.data.token);
     setUser(res.data.user);
   };

@@ -120,7 +120,7 @@ export const parentSignup = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email: rawEmail, password } = req.body;
+    const { email: rawEmail, password, role } = req.body;
     const email = rawEmail.toLowerCase();
 
     const user = await prisma.user.findUnique({ where: { email }, include: { school: true, parentStudents: { include: { student: true } } } });
@@ -129,6 +129,18 @@ export const login = async (req: Request, res: Response) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+
+    // Validate that the user's actual role matches the selected login role
+    if (role && user.role !== role) {
+      if (role === 'parent') {
+        return res.status(403).json({ error: 'No parent profile found with this email. Please use the correct login type.' });
+      } else if (role === 'teacher') {
+        return res.status(403).json({ error: 'No teacher profile found with this email. Please use the correct login type.' });
+      } else if (role === 'admin') {
+        return res.status(403).json({ error: 'No admin profile found with this email. Please use the correct login type.' });
+      }
+      return res.status(403).json({ error: 'Role mismatch. Please select the correct login type.' });
+    }
 
     const finalStudentId = user.student_id || user.parentStudents?.[0]?.student?.student_id;
     const token = jwt.sign({ id: user.id, role: user.role, school_id: user.school_id }, JWT_SECRET, { expiresIn: '7d' });
