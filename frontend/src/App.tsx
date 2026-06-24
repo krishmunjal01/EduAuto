@@ -6,10 +6,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppDataProvider } from "@/contexts/AppDataContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Security from "./pages/Security";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ReportImages from "./pages/ReportImages";
 import TeacherAttendance from "./pages/TeacherAttendance";
@@ -55,10 +58,12 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/" element={<Navigate to="/login" replace />} />
+    <Route path="/" element={<LandingPage />} />
     <Route path="/login" element={<Login />} />
     <Route path="/signup" element={<Signup />} />
     <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/privacy" element={<PrivacyPolicy />} />
+    <Route path="/security" element={<Security />} />
 
     {/* Admin routes */}
     <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><Dashboard /></ProtectedRoute>} />

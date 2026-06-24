@@ -19,19 +19,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 
 // Root — API info
-app.get('/', (req, res) => {
-  res.json({
+const rootHandler = (req: express.Request, res: express.Response) => {
+  res.status(200).json({
     name: 'EduAuto SaaS API',
     version: '1.0.0',
     status: 'running',
     docs: '/health'
   });
-});
+};
+app.get('/', rootHandler);
+app.head('/', rootHandler);
 
 // Healthcheck
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+const healthHandler = (req: express.Request, res: express.Response) => {
+  res.status(200).json({ status: 'ok' });
+};
+app.get('/health', healthHandler);
+app.head('/health', healthHandler);
 
 import authRoutes from './routes/auth.routes';
 import adminRoutes from './routes/admin.routes';
